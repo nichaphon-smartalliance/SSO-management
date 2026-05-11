@@ -6,14 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Label } from "@/components/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
 import { mockLogs as mockAuditLogs } from "@/data/mockData";
 import { TEXT_LABEL, TEXT_BUTTON } from "@/constant/text";
 import { LOG_STATUS_OPTIONS, LOGS_CONFIG } from "./Logs.config";
 import type { AuditLog } from "@/types/app";
-import { DatePicker } from "@/components/ui/DatePicker/date-picker";
-import { log } from "console";
 
 const EVENT_TYPE_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
@@ -57,26 +56,38 @@ export function LogsContent() {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    new Date("2026-03-30T00:00:00.000Z"),
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    new Date("2026-03-30T23:59:59.999Z"),
-  );
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
-  
-
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   const filtered = mockAuditLogs.filter((log) => {
     const matchSearch =
       log.actor.toLowerCase().includes(search.toLowerCase()) ||
       log.action.toLowerCase().includes(search.toLowerCase()) ||
+      log.eventType.toLowerCase().includes(search.toLowerCase()) ||
       log.details.toLowerCase().includes(search.toLowerCase());
     const matchSeverity = severityFilter === "all" || log.severity === severityFilter;
     const matchStatus = statusFilter === "all" || log.status === statusFilter;
     const matchEventType = eventTypeFilter === "all" || log.eventType === eventTypeFilter;
-    return matchSearch && matchSeverity && matchStatus && matchEventType;
+
+    let matchDateRange = true;
+    if (startDate || endDate) {
+      const logDate = new Date(log.timestamp);
+      logDate.setHours(0, 0, 0, 0);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        matchDateRange = matchDateRange && logDate >= start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        matchDateRange = matchDateRange && logDate <= end;
+      }
+    }
+
+    return matchSearch && matchSeverity && matchStatus && matchEventType && matchDateRange;
   });
 
   const counts = {
@@ -88,16 +99,19 @@ export function LogsContent() {
 
   return (
     <div className="space-y-6">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{LOGS_CONFIG.title}</h1>
-          <p className="text-slate-600">{LOGS_CONFIG.description}</p>
+          <p className="text-slate-600 mt-1">{LOGS_CONFIG.description}</p>
         </div>
         <Button onClick={() => console.log("Exporting...")}>
           <Download className="w-4 h-4 mr-2" /> ส่งออกข้อมูล
         </Button>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: "Info", count: counts.info, icon: <Info className="w-4 h-4 text-blue-500" />, color: "text-blue-600" },
@@ -107,7 +121,7 @@ export function LogsContent() {
         ].map(({ label, count, icon, color }) => (
           <Card key={label}>
             <CardHeader className="pb-3">
-              <CardTitle className={`text-sm font-medium text-slate-600 flex items-center gap-2`}>
+              <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
                 {icon} {label}
               </CardTitle>
             </CardHeader>
@@ -118,9 +132,11 @@ export function LogsContent() {
         ))}
       </div>
 
+      {/* Filter Card */}
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Row 1: search + 3 selects */}
             <div className="lg:col-span-2 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -149,35 +165,34 @@ export function LogsContent() {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger><SelectValue placeholder="สถานะ" /></SelectTrigger>
               <SelectContent>
-              {LOG_STATUS_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
+                {LOG_STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  วันที่เริ่มต้น
-                </label>
-                <DatePicker
-                  date={startDate}
-                  onDateChange={setStartDate}
-                  placeholder="เลือกวันที่เริ่มต้น"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  วันที่สิ้นสุด
-                </label>
-                <DatePicker
-                  date={endDate}
-                  onDateChange={setEndDate}
-                  placeholder="เลือกวันที่สิ้นสุด"
-                />
-              </div>
+
+            {/* Row 2: date range (wraps naturally in the 5-col grid) */}
+            <div className="space-y-1.5">
+              <Label>วันที่เริ่มต้น</Label>
+              <DatePicker
+                date={startDate}
+                onDateChange={setStartDate}
+                placeholder="เลือกวันที่เริ่มต้น"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>วันที่สิ้นสุด</Label>
+              <DatePicker
+                date={endDate}
+                onDateChange={setEndDate}
+                placeholder="เลือกวันที่สิ้นสุด"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Table */}
       <Card>
         <CardHeader><CardTitle>บันทึกกิจกรรม ({filtered.length})</CardTitle></CardHeader>
         <CardContent>
@@ -238,6 +253,7 @@ export function LogsContent() {
         </CardContent>
       </Card>
 
+      {/* Log Detail Dialog */}
       <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>รายละเอียด Log</DialogTitle></DialogHeader>

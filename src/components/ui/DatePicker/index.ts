@@ -1,2 +1,2 @@
-export { DatePicker } from "./DatePicker";
-export type { DatePickerProps } from "./DatePicker";
+export { default as BaseDatePicker } from "./BaseDatePicker";
+export { default as BuddhistDatePicker } from "./BuddhistDatePicker";
