@@ -1,35 +1,50 @@
 "use client";
 
-import { Bell, User, ChevronDown, LogOut, Settings, Shield } from "lucide-react";
+import { Bell, User, ChevronDown, LogOut, Settings } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { HEADER_LOGO_CONFIG, HEADER_ROLE_LABEL, HEADER_STYLE } from "./Header.config";
+import { TEXT_BUTTON } from "@/constant/text";
 
 export function AdminHeader() {
   const { data: session } = useSession();
-  const role = (session?.user as any)?.role;
+  const role = (session?.user as any)?.role as string | undefined;
   const isSuperAdmin = role === "super_admin";
+  const roleLabel = HEADER_ROLE_LABEL[role ?? ""] ?? "Admin";
+  const LogoIcon = HEADER_LOGO_CONFIG.logoIcon;
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-      <div className="flex items-center justify-between h-16 px-6">
+    <header
+      className="sticky top-0 z-40 border-b"
+      style={{ background: HEADER_STYLE.background, borderColor: HEADER_STYLE.borderColor }}
+    >
+      <div className="flex items-center justify-between px-6" style={{ height: HEADER_STYLE.height }}>
         {/* Left — logo + title */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-lg shrink-0">
-            <Shield className="w-6 h-6 text-white" />
+          <div
+            className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
+            style={{ background: HEADER_STYLE.logoIconBg }}
+          >
+            <LogoIcon className="w-6 h-6" style={{ color: HEADER_STYLE.logoIconColor }} />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-slate-900 leading-tight">
-              ระบบการลงชื่อเข้าใช้ระบบสารสนเทศแบบครั้งเดียว สำหรับเจ้าหน้าที่
+            <h1 className="text-base font-semibold leading-tight" style={{ color: HEADER_STYLE.titleColor }}>
+              {HEADER_LOGO_CONFIG.title}
             </h1>
-            <p className="text-xs text-slate-500">Single Sign - On Management</p>
+            <p className="text-xs" style={{ color: HEADER_STYLE.subtitleColor }}>
+              {HEADER_LOGO_CONFIG.subtitle}
+            </p>
           </div>
         </div>
 
-        {/* Right — bell + user */}
+        {/* Right — bell + user dropdown */}
         <div className="flex items-center gap-4">
           <button className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            <span
+              className="absolute top-1 right-1 w-2 h-2 rounded-full"
+              style={{ background: HEADER_STYLE.bellActiveColor }}
+            />
           </button>
 
           <DropdownMenu.Root>
@@ -43,12 +58,14 @@ export function AdminHeader() {
                     <p className="text-sm font-medium text-slate-900">
                       {session?.user?.name ?? "Admin"}
                     </p>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      isSuperAdmin
-                        ? "bg-indigo-600 text-white"
-                        : "bg-slate-100 text-slate-700"
-                    }`}>
-                      {isSuperAdmin ? "Super Admin" : "Admin หน่วยงาน"}
+                    <span
+                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: isSuperAdmin ? HEADER_STYLE.superAdminBadgeBg : HEADER_STYLE.orgAdminBadgeBg,
+                        color: isSuperAdmin ? HEADER_STYLE.superAdminBadgeColor : HEADER_STYLE.orgAdminBadgeColor,
+                      }}
+                    >
+                      {roleLabel}
                     </span>
                   </div>
                 </div>
@@ -80,7 +97,7 @@ export function AdminHeader() {
                   onClick={() => signOut({ callbackUrl: "/login" })}
                 >
                   <LogOut className="w-4 h-4" />
-                  ออกจากระบบ
+                  {TEXT_BUTTON.LOGOUT}
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>

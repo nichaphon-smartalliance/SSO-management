@@ -13,35 +13,19 @@ import {
 } from "recharts";
 import { mockOrganizations, mockUsers, mockClients, mockRequests } from "@/data/mockData";
 import Link from "next/link";
-
-const loginData = [
-  { date: "24 มี.ค.", logins: 3245, failed: 18 },
-  { date: "25 มี.ค.", logins: 3456, failed: 22 },
-  { date: "26 มี.ค.", logins: 3123, failed: 15 },
-  { date: "27 มี.ค.", logins: 3678, failed: 28 },
-  { date: "28 มี.ค.", logins: 3890, failed: 19 },
-  { date: "29 มี.ค.", logins: 3567, failed: 25 },
-  { date: "30 มี.ค.", logins: 3847, failed: 23 },
-];
-
-const clientStatusData = [
-  { name: "Active", value: 85, color: "#10b981" },
-  { name: "Inactive", value: 9, color: "#94a3b8" },
-  { name: "Expired", value: 6, color: "#ef4444" },
-];
-
-const organizationActivityData = [
-  { org: "กระทรวงมหาดไทย", users: 2847, clients: 12 },
-  { org: "กระทรวงสาธารณสุข", users: 5621, clients: 15 },
-  { org: "กระทรวงศึกษาธิการ", users: 8956, clients: 18 },
-  { org: "กระทรวงการคลัง", users: 1523, clients: 8 },
-  { org: "กระทรวง MDES", users: 987, clients: 20 },
-];
+import { DashboardHeader } from "./DashboardHeader";
+import {
+  DASHBOARD_CONFIG,
+  LOGIN_CHART_DATA,
+  CLIENT_STATUS_DATA,
+  ORG_ACTIVITY_DATA,
+} from "./Dashboard.config";
+import { TEXT_BUTTON, TEXT_LABEL } from "@/constant/text";
 
 const pendingRequests = mockRequests.filter((r) => r.status === "pending");
-const recentUsers = mockUsers.slice(0, 5);
+const recentUsers = mockUsers.slice(0, DASHBOARD_CONFIG.recentUserCount);
 const expiringClients = mockClients.filter(
-  (c) => new Date(c.expiryDate) <= new Date("2026-12-31") && c.status !== "active"
+  (c) => new Date(c.expiryDate) <= new Date(DASHBOARD_CONFIG.expiryThresholdDate) && c.status !== "active"
 );
 
 const totalOrgs = mockOrganizations.length;
@@ -54,11 +38,7 @@ const activeClients = mockClients.filter((c) => c.status === "active").length;
 export function DashboardContent() {
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">แดชบอร์ด</h1>
-        <p className="text-slate-600">ภาพรวมระบบ Single Sign - On Management</p>
-      </div>
+      <DashboardHeader />
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -70,7 +50,7 @@ export function DashboardContent() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{totalOrgs}</div>
             <div className="flex items-center gap-1 mt-1 text-sm">
-              <span className="text-green-600 font-medium">{activeOrgs} Active</span>
+              <span className="text-green-600 font-medium">{activeOrgs} {TEXT_LABEL.ACTIVE}</span>
               <TrendingUp className="w-3 h-3 text-green-600" />
             </div>
           </CardContent>
@@ -84,7 +64,7 @@ export function DashboardContent() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{totalUsers.toLocaleString()}</div>
             <div className="flex items-center gap-1 mt-1 text-sm">
-              <span className="text-green-600 font-medium">{activeUsers.toLocaleString()} Active</span>
+              <span className="text-green-600 font-medium">{activeUsers.toLocaleString()} {TEXT_LABEL.ACTIVE}</span>
               <TrendingUp className="w-3 h-3 text-green-600" />
             </div>
           </CardContent>
@@ -98,7 +78,7 @@ export function DashboardContent() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{totalClients}</div>
             <div className="flex items-center gap-1 mt-1 text-sm">
-              <span className="text-green-600 font-medium">{activeClients} Active</span>
+              <span className="text-green-600 font-medium">{activeClients} {TEXT_LABEL.ACTIVE}</span>
               <TrendingUp className="w-3 h-3 text-green-600" />
             </div>
           </CardContent>
@@ -126,8 +106,8 @@ export function DashboardContent() {
             <CardTitle>กิจกรรมการเข้าสู่ระบบ (7 วันล่าสุด)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={loginData}>
+            <ResponsiveContainer width="100%" height={DASHBOARD_CONFIG.chartHeight}>
+              <LineChart data={LOGIN_CHART_DATA}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
                 <YAxis stroke="#64748b" fontSize={12} />
@@ -145,17 +125,17 @@ export function DashboardContent() {
             <CardTitle>สถานะระบบงาน (Clients)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={DASHBOARD_CONFIG.chartHeight}>
               <PieChart>
                 <Pie
-                  data={clientStatusData}
+                  data={CLIENT_STATUS_DATA}
                   cx="50%" cy="50%"
                   labelLine={false}
                   label={({ name, value }) => `${name}: ${value}`}
                   outerRadius={100}
                   dataKey="value"
                 >
-                  {clientStatusData.map((entry, i) => (
+                  {CLIENT_STATUS_DATA.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
@@ -172,8 +152,8 @@ export function DashboardContent() {
           <CardTitle>กิจกรรมตามหน่วยงาน</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={organizationActivityData}>
+          <ResponsiveContainer width="100%" height={DASHBOARD_CONFIG.chartHeight}>
+            <BarChart data={ORG_ACTIVITY_DATA}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="org" stroke="#64748b" fontSize={11} angle={-15} textAnchor="end" height={80} />
               <YAxis stroke="#64748b" fontSize={12} />
@@ -192,7 +172,7 @@ export function DashboardContent() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>คำขอรอดำเนินการ</CardTitle>
             <Link href="/requests">
-              <Button variant="outline" size="sm">ดูทั้งหมด</Button>
+              <Button variant="outline" size="sm">{TEXT_BUTTON.VIEW_ALL}</Button>
             </Link>
           </CardHeader>
           <CardContent>
@@ -215,7 +195,7 @@ export function DashboardContent() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-amber-500" />
-                      <Badge variant="secondary">รอดำเนินการ</Badge>
+                      <Badge variant="secondary">{TEXT_LABEL.STATUS_PENDING}</Badge>
                     </div>
                   </div>
                 ))
@@ -228,7 +208,7 @@ export function DashboardContent() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>ระบบงานใกล้หมดอายุ (30 วัน)</CardTitle>
             <Link href="/clients">
-              <Button variant="outline" size="sm">ดูทั้งหมด</Button>
+              <Button variant="outline" size="sm">{TEXT_BUTTON.VIEW_ALL}</Button>
             </Link>
           </CardHeader>
           <CardContent>
@@ -250,7 +230,7 @@ export function DashboardContent() {
                         {new Date(c.expiryDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
                       </p>
                       <Badge variant="destructive" className="mt-1">
-                        {c.status === "expired" ? "หมดอายุแล้ว" : "ใกล้หมดอายุ"}
+                        {c.status === "expired" ? TEXT_LABEL.STATUS_EXPIRED : TEXT_LABEL.STATUS_EXPIRING}
                       </Badge>
                     </div>
                   </div>
@@ -266,7 +246,7 @@ export function DashboardContent() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>ผู้ใช้งานล่าสุด</CardTitle>
           <Link href="/users">
-            <Button variant="outline" size="sm">ดูทั้งหมด</Button>
+            <Button variant="outline" size="sm">{TEXT_BUTTON.VIEW_ALL}</Button>
           </Link>
         </CardHeader>
         <CardContent>
@@ -289,14 +269,14 @@ export function DashboardContent() {
                     <td className="py-3 px-4 text-sm text-slate-600">{user.organizationName}</td>
                     <td className="py-3 px-4">
                       {user.thaidLinked ? (
-                        <Badge variant="success">เชื่อมโยงแล้ว</Badge>
+                        <Badge variant="success">{TEXT_LABEL.LINKED}</Badge>
                       ) : (
-                        <Badge variant="secondary">ยังไม่เชื่อมโยง</Badge>
+                        <Badge variant="secondary">{TEXT_LABEL.NOT_LINKED}</Badge>
                       )}
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant={user.status === "active" ? "success" : user.status === "locked" ? "destructive" : "secondary"}>
-                        {user.status === "active" ? "ใช้งาน" : user.status === "locked" ? "ถูกล็อก" : "ไม่ใช้งาน"}
+                        {user.status === "active" ? TEXT_LABEL.STATUS_ACTIVE : user.status === "locked" ? TEXT_LABEL.STATUS_LOCKED : TEXT_LABEL.STATUS_INACTIVE}
                       </Badge>
                     </td>
                   </tr>
@@ -326,7 +306,7 @@ export function DashboardContent() {
             </Link>
             <Link href="/requests">
               <Button variant="outline" className="w-full">
-                <FileCheck className="w-4 h-4 mr-2" /> อนุมัติคำขอ
+                <FileCheck className="w-4 h-4 mr-2" /> {TEXT_BUTTON.APPROVE}คำขอ
               </Button>
             </Link>
             <Link href="/logs">
