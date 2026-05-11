@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
 import { mockLogs as mockAuditLogs } from "@/data/mockData";
 import { TEXT_LABEL, TEXT_BUTTON } from "@/constant/text";
-import { LOGS_CONFIG } from "./Logs.config";
+import { LOG_STATUS_OPTIONS, LOGS_CONFIG } from "./Logs.config";
 import type { AuditLog } from "@/types/app";
 
 const EVENT_TYPE_OPTIONS = [
-  { value: "all", label: "ประเภทเหตุการณ์ทั้งหมด" },
+  { value: "all", label: "ทั้งหมด" },
   { value: "USER_LOGIN", label: "เข้าสู่ระบบ" },
   { value: "USER_CREATED", label: "สร้างผู้ใช้" },
   { value: "CLIENT_ACCESS", label: "เข้าถึง Client" },
@@ -26,7 +26,7 @@ const EVENT_TYPE_OPTIONS = [
 ];
 
 const SEVERITY_OPTIONS = [
-  { value: "all", label: "ระดับทั้งหมด" },
+  { value: "all", label: "ทั้งหมด" },
   { value: "info", label: "Info" },
   { value: "warning", label: "Warning" },
   { value: "error", label: "Error" },
@@ -81,7 +81,7 @@ export function LogsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{LOGS_CONFIG.title}</h1>
-          <p className="text-slate-600 mt-1">{LOGS_CONFIG.description}</p>
+          <p className="text-slate-600">{LOGS_CONFIG.description}</p>
         </div>
         <Button onClick={() => console.log("Exporting...")}>
           <Download className="w-4 h-4 mr-2" /> ส่งออกข้อมูล
@@ -139,9 +139,9 @@ export function LogsContent() {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger><SelectValue placeholder="สถานะ" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-                <SelectItem value="success">สำเร็จ</SelectItem>
-                <SelectItem value="failure">ล้มเหลว</SelectItem>
+              {LOG_STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
               </SelectContent>
             </Select>
           </div>

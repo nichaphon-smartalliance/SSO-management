@@ -5,8 +5,13 @@ export const LOGS_CONFIG = {
   description: "บันทึกกิจกรรมและการตรวจสอบความปลอดภัย",
 } as const;
 
+export const LOG_STATUS_OPTIONS = [
+  { value: "all", label: "ทั้งหมด" },
+  { value: "success", label: "สำเร็จ" },
+  { value: "failure", label: "ล้มเหลว" },
+] as const;
 export const SEVERITY_OPTIONS = [
-  { value: "all", label: "ระดับทั้งหมด" },
+  { value: "all", label: "ทั้งหมด" },
   { value: "info", label: "Info" },
   { value: "warning", label: "Warning" },
   { value: "error", label: "Error" },

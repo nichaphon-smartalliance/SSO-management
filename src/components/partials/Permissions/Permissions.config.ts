@@ -6,7 +6,7 @@ export const PERMISSIONS_CONFIG = {
 } as const;
 
 export const PERMISSION_STATUS_OPTIONS = [
-  { value: "all", label: "สถานะทั้งหมด" },
+  { value: "all", label: "ทั้งหมด" },
   { value: "active", label: "ใช้งาน" },
   { value: "expired", label: "หมดอายุ" },
   { value: "revoked", label: "ถูกเพิกถอน" },

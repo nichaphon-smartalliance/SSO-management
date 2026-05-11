@@ -42,7 +42,7 @@ export function ClientsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{CLIENTS_CONFIG.title}</h1>
-          <p className="text-slate-600 mt-1">{CLIENTS_CONFIG.description}</p>
+          <p className="text-slate-600">{CLIENTS_CONFIG.description}</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <Plus className="w-4 h-4 mr-2" /> เพิ่มระบบงานใหม่
@@ -66,7 +66,7 @@ export function ClientsContent() {
                 <SelectValue placeholder="หน่วยงาน" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">หน่วยงานทั้งหมด</SelectItem>
+                <SelectItem value="all">ทั้งหมด</SelectItem>
                 {mockOrganizations.map((o) => (
                   <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
                 ))}

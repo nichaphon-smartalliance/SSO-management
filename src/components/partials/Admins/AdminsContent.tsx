@@ -16,7 +16,7 @@ import { AdminCreateDialog } from "./AdminCreateDialog";
 import type { Admin } from "@/types/app";
 
 const ROLE_OPTIONS = [
-  { value: "all", label: "บทบาททั้งหมด" },
+  { value: "all", label: "ทั้งหมด" },
   { value: "super_admin", label: "Super Admin" },
   { value: "org_admin", label: "Admin หน่วยงาน" },
 ];
@@ -50,7 +50,7 @@ export function AdminsContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{ADMINS_CONFIG.title}</h1>
-          <p className="text-slate-600 mt-1">{ADMINS_CONFIG.description}</p>
+          <p className="text-slate-600">{ADMINS_CONFIG.description}</p>
         </div>
         <Button onClick={() => setShowCreate(true)}>
           <Plus className="w-4 h-4 mr-2" /> เพิ่มผู้ดูแลระบบ
