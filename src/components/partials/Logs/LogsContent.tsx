@@ -12,6 +12,8 @@ import { mockLogs as mockAuditLogs } from "@/data/mockData";
 import { TEXT_LABEL, TEXT_BUTTON } from "@/constant/text";
 import { LOG_STATUS_OPTIONS, LOGS_CONFIG } from "./Logs.config";
 import type { AuditLog } from "@/types/app";
+import { DatePicker } from "@/components/ui/DatePicker/date-picker";
+import { log } from "console";
 
 const EVENT_TYPE_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
@@ -55,7 +57,15 @@ export function LogsContent() {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    new Date("2026-03-30T00:00:00.000Z"),
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    new Date("2026-03-30T23:59:59.999Z"),
+  );
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
+  
+
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   const filtered = mockAuditLogs.filter((log) => {
@@ -110,7 +120,7 @@ export function LogsContent() {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-2 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -144,6 +154,26 @@ export function LogsContent() {
               ))}
               </SelectContent>
             </Select>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  วันที่เริ่มต้น
+                </label>
+                <DatePicker
+                  date={startDate}
+                  onDateChange={setStartDate}
+                  placeholder="เลือกวันที่เริ่มต้น"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  วันที่สิ้นสุด
+                </label>
+                <DatePicker
+                  date={endDate}
+                  onDateChange={setEndDate}
+                  placeholder="เลือกวันที่สิ้นสุด"
+                />
+              </div>
           </div>
         </CardContent>
       </Card>

@@ -1,8 +1,8 @@
 import { Info, AlertTriangle, AlertCircle, Flame } from "lucide-react";
 
 export const LOGS_CONFIG = {
-  title: "Audit Logs",
-  description: "บันทึกกิจกรรมและการตรวจสอบความปลอดภัย",
+  title: "Logs / Audit Trail",
+  description: "บันทึกกิจกรรมและการตรวจสอบระบบ",
 } as const;
 
 export const LOG_STATUS_OPTIONS = [
