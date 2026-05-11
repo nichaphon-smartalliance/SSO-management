@@ -4,7 +4,18 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "../utils";
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Root
+    ref={ref}
+    data-slot="tabs"
+    className={cn("flex flex-col gap-2", className)}
+    {...props}
+  />
+));
+Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
@@ -13,7 +24,10 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     data-slot="tabs-list"
-    className={cn("inline-flex h-9 items-center justify-center rounded-lg bg-slate-100 p-1 text-slate-500", className)}
+    className={cn(
+      "inline-flex h-9 w-fit items-center justify-center rounded-xl bg-slate-100 p-[3px] text-slate-500",
+      className
+    )}
     {...props}
   />
 ));
@@ -27,10 +41,11 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     data-slot="tabs-trigger"
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all",
+      "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-transparent px-2 py-1 text-sm font-medium text-slate-600 transition-[color,box-shadow]",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
       "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow",
+      "data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:border-slate-200 data-[state=active]:shadow-sm",
+      "[&_svg]:pointer-events-none [&_svg]:shrink-0",
       className
     )}
     {...props}
@@ -45,7 +60,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     data-slot="tabs-content"
-    className={cn("mt-2 focus-visible:outline-none", className)}
+    className={cn("flex-1 outline-none", className)}
     {...props}
   />
 ));

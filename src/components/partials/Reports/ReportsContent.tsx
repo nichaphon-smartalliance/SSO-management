@@ -20,7 +20,7 @@ export function ReportsContent() {
     <div className="space-y-6">
       <ReportsHeader />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {REPORT_STAT_CARDS.map((s) => {
           const Icon = s.icon;
           return (
@@ -41,17 +41,17 @@ export function ReportsContent() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-base">การเติบโตของผู้ใช้</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={USER_GROWTH_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="users" stroke="#4f46e5" strokeWidth={2} name="ผู้ใช้" />
+                <Line type="monotone" dataKey="users" stroke="#4f46e5" strokeWidth={3} name="ผู้ใช้" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -60,13 +60,13 @@ export function ReportsContent() {
         <Card>
           <CardHeader><CardTitle className="text-base">แนวโน้มการเข้าสู่ระบบ</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={LOGIN_TREND_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="logins" stroke="#10b981" strokeWidth={2} name="การเข้าสู่ระบบ" />
+                <Line type="monotone" dataKey="logins" stroke="#10b981" strokeWidth={3} name="การเข้าสู่ระบบ" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -75,7 +75,7 @@ export function ReportsContent() {
         <Card>
           <CardHeader><CardTitle className="text-base">ระบบงานยอดนิยม</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={TOP_CLIENTS_DATA} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                   {TOP_CLIENTS_DATA.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
@@ -90,9 +90,9 @@ export function ReportsContent() {
         <Card>
           <CardHeader><CardTitle className="text-base">การใช้งานตามหน่วยงาน</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={ORG_USAGE_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="org" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />

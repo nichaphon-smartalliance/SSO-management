@@ -34,14 +34,14 @@ export function SettingsContent() {
     <div className="space-y-6">
       <SettingsHeader />
 
-      <Tabs defaultValue="password">
-        <TabsList>
+      <Tabs defaultValue="password" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
           {SETTINGS_TABS.map((t) => (
             <TabsTrigger key={t.key} value={t.key}>{t.label}</TabsTrigger>
           ))}
         </TabsList>
 
-        <TabsContent value="password">
+        <TabsContent value="password" className="mt-6">
           <Card>
             <CardHeader><CardTitle className="text-base">นโยบายรหัสผ่าน</CardTitle></CardHeader>
             <CardContent>
@@ -73,7 +73,7 @@ export function SettingsContent() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="mfa">
+        <TabsContent value="mfa" className="mt-6">
           <Card>
             <CardHeader><CardTitle className="text-base">การตั้งค่า MFA</CardTitle></CardHeader>
             <CardContent>
@@ -97,7 +97,7 @@ export function SettingsContent() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="session">
+        <TabsContent value="session" className="mt-6">
           <Card>
             <CardHeader><CardTitle className="text-base">การตั้งค่า Session</CardTitle></CardHeader>
             <CardContent>
@@ -120,7 +120,7 @@ export function SettingsContent() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="token">
+        <TabsContent value="token" className="mt-6">
           <Card>
             <CardHeader><CardTitle className="text-base">การตั้งค่า Token</CardTitle></CardHeader>
             <CardContent>
@@ -143,7 +143,7 @@ export function SettingsContent() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="thaid">
+        <TabsContent value="thaid" className="mt-6">
           <Card>
             <CardHeader><CardTitle className="text-base">การตั้งค่า ThaID</CardTitle></CardHeader>
             <CardContent>
@@ -173,7 +173,7 @@ export function SettingsContent() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="titles">
+        <TabsContent value="titles" className="mt-6">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">

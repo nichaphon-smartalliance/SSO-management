@@ -37,7 +37,7 @@ export function PermissionsContent() {
         <p className="text-slate-600 mt-1">{PERMISSIONS_CONFIG.description}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {PERMISSION_STAT_CARDS.map((s) => {
           const Icon = s.icon;
           const value = mockPermissions.filter((p) => p.status === s.key).length;
