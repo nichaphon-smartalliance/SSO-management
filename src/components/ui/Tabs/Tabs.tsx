@@ -42,9 +42,9 @@ const TabsTrigger = React.forwardRef<
     data-slot="tabs-trigger"
     className={cn(
       "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-transparent px-2 py-1 text-sm font-medium text-slate-600 transition-[color,box-shadow]",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
       "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:border-slate-200 data-[state=active]:shadow-sm",
+      "data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:border-slate-200 data-[state=active]:shadow-sm",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0",
       className
     )}

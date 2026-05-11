@@ -3,16 +3,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap transition-colors [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-indigo-100 text-indigo-700",
-        success: "bg-green-100 text-green-700 border border-green-300",
-        warning: "bg-amber-100 text-amber-700",
-        destructive: "bg-red-100 text-red-700",
-        secondary: "bg-slate-100 text-slate-600",
-        outline: "border border-slate-300 text-slate-600 bg-transparent",
+        default: "border-transparent bg-slate-900 text-white",
+        success: "border-green-200 bg-green-100 text-green-700",
+        warning: "border-transparent bg-amber-100 text-amber-700",
+        destructive: "border-transparent bg-red-100 text-red-700",
+        secondary: "border-transparent bg-slate-100 text-slate-600",
+        outline: "border-slate-300 text-slate-600 bg-transparent",
       },
     },
     defaultVariants: { variant: "default" },

@@ -103,18 +103,39 @@ export function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>กิจกรรมการเข้าสู่ระบบ (7 วันล่าสุด)</CardTitle>
+            <CardTitle>
+              กิจกรรมการเข้าสู่ระบบ (7 วันล่าสุด)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={DASHBOARD_CONFIG.chartHeight}>
               <LineChart data={LOGIN_CHART_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e2e8f0"
+                />
+                <XAxis
+                  dataKey="date"
+                  stroke="#64748b"
+                  fontSize={12}
+                />
                 <YAxis stroke="#64748b" fontSize={12} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="logins" stroke="#4f46e5" strokeWidth={2} name="การเข้าสู่ระบบสำเร็จ" />
-                <Line type="monotone" dataKey="failed" stroke="#ef4444" strokeWidth={2} name="การเข้าสู่ระบบล้มเหลว" />
+                <Line
+                  type="monotone"
+                  dataKey="logins"
+                  stroke="#4f46e5"
+                  strokeWidth={2}
+                  name="การเข้าสู่ระบบสำเร็จ"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="failed"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  name="การเข้าสู่ระบบล้มเหลว"
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -172,7 +193,9 @@ export function DashboardContent() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>คำขอรอดำเนินการ</CardTitle>
             <Link href="/requests">
-              <Button variant="outline" size="sm">{TEXT_BUTTON.VIEW_ALL}</Button>
+              <Button variant="outline" size="sm">
+                {TEXT_BUTTON.VIEW_ALL}
+              </Button>
             </Link>
           </CardHeader>
           <CardContent>
