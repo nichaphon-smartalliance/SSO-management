@@ -9,7 +9,7 @@ export const HEADER_STYLE = {
   titleColor: "#0f172a",
   subtitleColor: "#64748b",
   bellActiveColor: "#ef4444",
-  superAdminBadgeBg: "#4f46e5",
+  superAdminBadgeBg: "#0f172a",
   superAdminBadgeColor: "#ffffff",
   orgAdminBadgeBg: "#f1f5f9",
   orgAdminBadgeColor: "#334155",

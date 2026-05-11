@@ -28,9 +28,9 @@ export function AdminHeader() {
             <LogoIcon className="w-6 h-6" style={{ color: HEADER_STYLE.logoIconColor }} />
           </div>
           <div>
-            <h1 className="text-base font-semibold leading-tight" style={{ color: HEADER_STYLE.titleColor }}>
+            <p className="font-semibold m-0 text-xl">
               {HEADER_LOGO_CONFIG.title}
-            </h1>
+            </p>
             <p className="text-xs" style={{ color: HEADER_STYLE.subtitleColor }}>
               {HEADER_LOGO_CONFIG.subtitle}
             </p>
