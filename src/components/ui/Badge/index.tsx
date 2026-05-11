@@ -5,11 +5,11 @@ type BadgeVariant = "default" | "success" | "warning" | "destructive" | "seconda
 
 const variantClasses: Record<BadgeVariant, string> = {
   default: "bg-indigo-100 text-indigo-700",
-  success: "bg-green-100 text-green-700",
+  success: "bg-green-100 text-green-700 border border-green-300",
   warning: "bg-amber-100 text-amber-700",
   destructive: "bg-red-100 text-red-700",
   secondary: "bg-slate-100 text-slate-600",
-  outline: "border border-slate-200 text-slate-600",
+  outline: "border border-slate-300 text-slate-600 bg-transparent",
 };
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
