@@ -9,6 +9,17 @@ import type {
   Title,
 } from "@/types/app";
 
+export interface LoginHistory {
+  id: string;
+  userId: string;
+  timestamp: string;
+  ipAddress: string;
+  userAgent: string;
+  location: string;
+  status: "success" | "failure";
+  failReason?: string;
+}
+
 export const mockOrganizations: Organization[] = [
   {
     id: "org-1",
@@ -478,6 +489,28 @@ export const mockLogs: AuditLog[] = [
     details: "ไม่มีสิทธิ์เข้าถึงระบบ",
   },
 ];
+
+export const mockLoginHistory: LoginHistory[] = [
+  { id: "lh-1", userId: "user-1", timestamp: "2026-05-11T07:30:00Z", ipAddress: "192.168.1.100", userAgent: "Chrome/124 Windows", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-2", userId: "user-1", timestamp: "2026-05-10T08:15:00Z", ipAddress: "192.168.1.100", userAgent: "Chrome/124 Windows", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-3", userId: "user-1", timestamp: "2026-05-09T09:00:00Z", ipAddress: "10.0.0.5", userAgent: "Safari/17 macOS", location: "เชียงใหม่", status: "failure", failReason: "รหัสผ่านไม่ถูกต้อง" },
+  { id: "lh-4", userId: "user-1", timestamp: "2026-05-08T07:45:00Z", ipAddress: "192.168.1.100", userAgent: "Chrome/124 Windows", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-5", userId: "user-1", timestamp: "2026-05-07T08:30:00Z", ipAddress: "192.168.1.100", userAgent: "Chrome/124 Windows", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-6", userId: "user-2", timestamp: "2026-05-10T16:45:00Z", ipAddress: "192.168.2.50", userAgent: "Firefox/125 Windows", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-7", userId: "user-3", timestamp: "2026-05-11T09:00:00Z", ipAddress: "172.16.0.10", userAgent: "Chrome/124 Linux", location: "กรุงเทพมหานคร", status: "success" },
+  { id: "lh-8", userId: "user-5", timestamp: "2026-03-15T08:00:00Z", ipAddress: "10.10.0.20", userAgent: "Chrome/123 Windows", location: "สมุทรปราการ", status: "failure", failReason: "บัญชีถูกล็อก" },
+];
+
+export const dashboardStats = {
+  totalOrganizations: 6,
+  activeOrganizations: 5,
+  totalUsers: 19750,
+  activeUsers: 18420,
+  totalClients: 43,
+  activeClients: 38,
+  totalAdmins: 3,
+  pendingRequests: 1,
+};
 
 export const mockTitles: Title[] = [
   { id: "t-1", name: "นาย", status: "active", createdAt: "2024-01-01", updatedAt: "2024-01-01" },

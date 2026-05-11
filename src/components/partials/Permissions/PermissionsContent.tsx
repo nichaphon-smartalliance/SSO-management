@@ -2,15 +2,20 @@
 
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { mockPermissions } from "@/data/mockData";
-import { format } from "date-fns";
 import { TEXT_LABEL } from "@/constant/text";
-import { PermissionsHeader } from "./PermissionsHeader";
-import { PERMISSION_STATUS_OPTIONS, PERMISSION_STAT_CARDS } from "./Permissions.config";
+import { PERMISSIONS_CONFIG, PERMISSION_STATUS_OPTIONS, PERMISSION_STAT_CARDS } from "./Permissions.config";
+
+function statusBadge(status: string) {
+  if (status === "active") return <Badge variant="success">{TEXT_LABEL.STATUS_ACTIVE}</Badge>;
+  if (status === "expired") return <Badge variant="secondary">หมดอายุ</Badge>;
+  return <Badge variant="destructive">ถูกเพิกถอน</Badge>;
+}
 
 export function PermissionsContent() {
   const [search, setSearch] = useState("");
@@ -18,22 +23,19 @@ export function PermissionsContent() {
 
   const filtered = mockPermissions.filter((p) => {
     const matchSearch =
-      p.userName.includes(search) ||
-      p.clientName.includes(search) ||
-      p.organizationName.includes(search);
+      p.userName.toLowerCase().includes(search.toLowerCase()) ||
+      p.clientName.toLowerCase().includes(search.toLowerCase()) ||
+      p.organizationName.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const statusBadge = (status: string) => {
-    if (status === "active") return <Badge variant="success">{TEXT_LABEL.STATUS_ACTIVE}</Badge>;
-    if (status === "expired") return <Badge variant="warning">{TEXT_LABEL.STATUS_EXPIRED}</Badge>;
-    return <Badge variant="destructive">ถูกเพิกถอน</Badge>;
-  };
-
   return (
     <div className="space-y-6">
-      <PermissionsHeader />
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">{PERMISSIONS_CONFIG.title}</h1>
+        <p className="text-slate-600 mt-1">{PERMISSIONS_CONFIG.description}</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {PERMISSION_STAT_CARDS.map((s) => {
@@ -59,25 +61,29 @@ export function PermissionsContent() {
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="ค้นหาสิทธิ์..."
-                className="pl-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <CardTitle>รายการสิทธิ์การเข้าถึง ({filtered.length})</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="ค้นหาสิทธิ์..."
+                  className="pl-9 w-full sm:w-64"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="สถานะ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERMISSION_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <select
-              className="h-9 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              {PERMISSION_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -96,14 +102,20 @@ export function PermissionsContent() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={8} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
+                ) : filtered.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">{p.userName}</td>
                     <td className="px-6 py-4 text-slate-600">{p.clientName}</td>
                     <td className="px-6 py-4 text-slate-600">{p.organizationName}</td>
                     <td className="px-6 py-4 text-slate-600">{p.role}</td>
-                    <td className="px-6 py-4 text-slate-600 text-xs">{format(new Date(p.effectiveDate), "dd/MM/yyyy")}</td>
-                    <td className="px-6 py-4 text-slate-600 text-xs">{format(new Date(p.expiryDate), "dd/MM/yyyy")}</td>
+                    <td className="px-6 py-4 text-slate-600 text-xs">
+                      {new Date(p.effectiveDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 text-xs">
+                      {new Date(p.expiryDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+                    </td>
                     <td className="px-6 py-4">{statusBadge(p.status)}</td>
                     <td className="px-6 py-4">
                       {p.status === "active" && (
@@ -114,9 +126,6 @@ export function PermissionsContent() {
                 ))}
               </tbody>
             </table>
-            {filtered.length === 0 && (
-              <div className="text-center py-12 text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</div>
-            )}
           </div>
         </CardContent>
       </Card>

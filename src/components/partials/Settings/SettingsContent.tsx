@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { mockTitles } from "@/data/mockData";
 import { TEXT_LABEL } from "@/constant/text";
@@ -26,6 +27,8 @@ export function SettingsContent() {
   const [enforceMfa, setEnforceMfa] = useState(false);
   const [allowRefresh, setAllowRefresh] = useState(true);
   const [thaidEnabled, setThaidEnabled] = useState(false);
+  const [mfaMethod, setMfaMethod] = useState("totp");
+  const [environment, setEnvironment] = useState("production");
 
   return (
     <div className="space-y-6">
@@ -78,11 +81,14 @@ export function SettingsContent() {
                 <Switch checked={enforceMfa} onCheckedChange={setEnforceMfa} />
               </SettingRow>
               <SettingRow label="วิธี MFA หลัก">
-                <select className="h-9 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option>TOTP (Google Authenticator)</option>
-                  <option>SMS OTP</option>
-                  <option>Email OTP</option>
-                </select>
+                <Select value={mfaMethod} onValueChange={setMfaMethod}>
+                  <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="totp">TOTP (Google Authenticator)</SelectItem>
+                    <SelectItem value="sms">SMS OTP</SelectItem>
+                    <SelectItem value="email">Email OTP</SelectItem>
+                  </SelectContent>
+                </Select>
               </SettingRow>
               <div className="flex justify-end mt-4">
                 <Button>บันทึกการตั้งค่า</Button>
@@ -148,11 +154,14 @@ export function SettingsContent() {
                 <Input placeholder="กรอก Client ID" className="w-64" />
               </SettingRow>
               <SettingRow label="สภาพแวดล้อม">
-                <select className="h-9 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <option>Production</option>
-                  <option>Staging</option>
-                  <option>Sandbox</option>
-                </select>
+                <Select value={environment} onValueChange={setEnvironment}>
+                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="production">Production</SelectItem>
+                    <SelectItem value="staging">Staging</SelectItem>
+                    <SelectItem value="sandbox">Sandbox</SelectItem>
+                  </SelectContent>
+                </Select>
               </SettingRow>
               <SettingRow label="เชื่อมโยงบัญชีอัตโนมัติ">
                 <Switch />
