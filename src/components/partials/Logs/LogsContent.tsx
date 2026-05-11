@@ -9,6 +9,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Label } from "@/components/ui/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/Dialog";
+
+// === NEW IMPORTS ===
+import dayjs from "dayjs";
+import BuddhistDatePicker from "@/components/ui/DatePicker/BuddhistDatePicker"; // ← Adjust path if needed
+
 import { mockLogs as mockAuditLogs } from "@/data/mockData";
 import { TEXT_LABEL, TEXT_BUTTON } from "@/constant/text";
 import { LOG_STATUS_OPTIONS, LOGS_CONFIG } from "./Logs.config";
@@ -57,8 +62,11 @@ export function LogsContent() {
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [eventTypeFilter, setEventTypeFilter] = useState("all");
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  // Changed to dayjs (required by AntD Buddhist picker)
+  const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
+
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   const filtered = mockAuditLogs.filter((log) => {
@@ -67,23 +75,20 @@ export function LogsContent() {
       log.action.toLowerCase().includes(search.toLowerCase()) ||
       log.eventType.toLowerCase().includes(search.toLowerCase()) ||
       log.details.toLowerCase().includes(search.toLowerCase());
+
     const matchSeverity = severityFilter === "all" || log.severity === severityFilter;
     const matchStatus = statusFilter === "all" || log.status === statusFilter;
     const matchEventType = eventTypeFilter === "all" || log.eventType === eventTypeFilter;
 
     let matchDateRange = true;
     if (startDate || endDate) {
-      const logDate = new Date(log.timestamp);
-      logDate.setHours(0, 0, 0, 0);
+      const logDate = dayjs(log.timestamp).startOf("day");
+
       if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        matchDateRange = matchDateRange && logDate >= start;
+        matchDateRange = matchDateRange && logDate >= (startDate.startOf("day"));
       }
       if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        matchDateRange = matchDateRange && logDate <= end;
+        matchDateRange = matchDateRange && logDate <= (endDate.endOf("day"));
       }
     }
 
@@ -99,7 +104,7 @@ export function LogsContent() {
 
   return (
     <div className="space-y-6">
-
+     
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -174,18 +179,23 @@ export function LogsContent() {
             {/* Row 2: date range (wraps naturally in the 5-col grid) */}
             <div className="space-y-1.5">
               <Label>วันที่เริ่มต้น</Label>
-              <DatePicker
-                date={startDate}
-                onDateChange={setStartDate}
+              <BuddhistDatePicker
+                value={startDate}
+                onChange={(date) => setStartDate(date as dayjs.Dayjs | null)}
                 placeholder="เลือกวันที่เริ่มต้น"
+                format="DD/MM/BBBB"
+                style={{ width: "100%" }}
               />
             </div>
+
             <div className="space-y-1.5">
               <Label>วันที่สิ้นสุด</Label>
-              <DatePicker
-                date={endDate}
-                onDateChange={setEndDate}
+              <BuddhistDatePicker
+                value={endDate}
+                onChange={(date) => setEndDate(date as dayjs.Dayjs | null)}
                 placeholder="เลือกวันที่สิ้นสุด"
+                format="DD/MM/BBBB"
+                style={{ width: "100%" }}
               />
             </div>
           </div>
