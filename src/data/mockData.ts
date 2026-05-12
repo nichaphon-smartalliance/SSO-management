@@ -9,6 +9,20 @@ import type {
   Title,
 } from "@/types/app";
 
+// ─── Notification ────────────────────────────────────────────────────────────
+
+export type NotificationType = "request" | "user" | "client" | "security" | "system";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  link?: string;
+}
+
 export interface LoginHistory {
   id: string;
   userId: string;
@@ -519,4 +533,63 @@ export const mockTitles: Title[] = [
   { id: "t-4", name: "ร้อยตรี", status: "active", createdAt: "2024-01-01", updatedAt: "2024-01-01" },
   { id: "t-5", name: "ร้อยโท", status: "active", createdAt: "2024-01-01", updatedAt: "2024-01-01" },
   { id: "t-6", name: "พันตรี", status: "inactive", createdAt: "2024-01-01", updatedAt: "2024-06-01" },
+];
+
+// ─── Mock Notifications ───────────────────────────────────────────────────────
+
+export const mockNotifications: Notification[] = [
+  {
+    id: "notif-1",
+    type: "request",
+    title: "คำขอใช้งานระบบใหม่",
+    message: "นายสมชาย ใจดี ขอเข้าใช้งาน ระบบบริหารทรัพยากรบุคคล",
+    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),  // 5 min ago
+    read: false,
+    link: "/requests",
+  },
+  {
+    id: "notif-2",
+    type: "security",
+    title: "บัญชีถูกล็อก",
+    message: "บัญชี user003 ถูกล็อกอัตโนมัติหลังจากเข้าสู่ระบบผิด 5 ครั้ง",
+    timestamp: new Date(Date.now() - 23 * 60 * 1000).toISOString(), // 23 min ago
+    read: false,
+    link: "/users",
+  },
+  {
+    id: "notif-3",
+    type: "client",
+    title: "Client Secret ใกล้หมดอายุ",
+    message: "ระบบสารบรรณอิเล็กทรอนิกส์ (e-Saraban) จะหมดอายุในอีก 7 วัน",
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hr ago
+    read: false,
+    link: "/clients",
+  },
+  {
+    id: "notif-4",
+    type: "request",
+    title: "คำขออนุมัติแล้ว",
+    message: "คำขอ REQ-2026-0042 ของ นางสาวกนกวรรณ ได้รับการอนุมัติแล้ว",
+    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hr ago
+    read: true,
+    link: "/requests",
+  },
+  {
+    id: "notif-5",
+    type: "user",
+    title: "ผู้ใช้งานใหม่ลงทะเบียน",
+    message: "นายประเสริฐ คงสมบูรณ์ สังกัด กระทรวงการคลัง ลงทะเบียนเข้าใช้ระบบ",
+    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hr ago
+    read: true,
+    link: "/users",
+  },
+  {
+    id: "notif-6",
+    type: "system",
+    title: "อัปเดตนโยบายรหัสผ่าน",
+    message: "นโยบายรหัสผ่านถูกอัปเดต — ความยาวขั้นต่ำเปลี่ยนเป็น 12 ตัวอักษร",
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    read: true,
+    link: "/settings",
+  },
 ];
