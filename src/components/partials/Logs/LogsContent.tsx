@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Download, Eye, AlertCircle, AlertTriangle, Info, XCircle } from "lucide-react";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -68,6 +70,97 @@ export function LogsContent() {
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
 
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const columns = useMemo<DataTableColumn<AuditLog>[]>(() => [
+    {
+      key: "timestamp",
+      title: "เวลา",
+      dataIndex: "timestamp",
+      sortable: true,
+      width: 140,
+      render: (val: string) =>
+        new Date(val).toLocaleString("th-TH", {
+          day: "2-digit", month: "short",
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+        }),
+    },
+    {
+      key: "severity",
+      title: "ระดับ",
+      dataIndex: "severity",
+      sortable: true,
+      width: 110,
+      render: (val: string) => (
+        <Badge className={`${getSeverityStyle(val)} border-0`}>
+          <span className="flex items-center gap-1">
+            {getSeverityIcon(val)} {val.toUpperCase()}
+          </span>
+        </Badge>
+      ),
+    },
+    {
+      key: "actor",
+      title: "ผู้ดำเนินการ",
+      dataIndex: "actor",
+      sortable: true,
+      render: (val: string, record: AuditLog) => (
+        <div>
+          <p className="text-sm font-medium text-slate-900">{val}</p>
+          <p className="text-xs text-slate-500">{record.actorRole}</p>
+        </div>
+      ),
+    },
+    {
+      key: "action",
+      title: "การกระทำ",
+      dataIndex: "action",
+      sortable: true,
+      render: (val: string) => <span className="text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "resource",
+      title: "ทรัพยากร",
+      dataIndex: "resource",
+      render: (val: string, record: AuditLog) => (
+        <div>
+          <p className="text-sm text-slate-900">{val}</p>
+          <p className="text-xs text-slate-500 font-mono">{record.resourceId}</p>
+        </div>
+      ),
+    },
+    {
+      key: "ipAddress",
+      title: "IP Address",
+      dataIndex: "ipAddress",
+      width: 130,
+      render: (val: string) => <span className="text-sm font-mono text-slate-600">{val}</span>,
+    },
+    {
+      key: "status",
+      title: "สถานะ",
+      dataIndex: "status",
+      sortable: true,
+      width: 100,
+      render: (val: string) => (
+        <Badge variant={val === "success" ? "success" : "destructive"}>
+          {val === "success" ? "สำเร็จ" : "ล้มเหลว"}
+        </Badge>
+      ),
+    },
+    {
+      key: "detail",
+      title: "",
+      align: "center",
+      width: 60,
+      render: (_: unknown, record: AuditLog) => (
+        <Button variant="ghost" size="sm" onClick={() => setSelectedLog(record)}>
+          <Eye className="w-4 h-4" />
+        </Button>
+      ),
+    },
+  ], [setSelectedLog]);
 
   const filtered = mockAuditLogs.filter((log) => {
     const matchSearch =
@@ -94,6 +187,9 @@ export function LogsContent() {
 
     return matchSearch && matchSeverity && matchStatus && matchEventType && matchDateRange;
   });
+
+  // Reset to page 1 whenever filter results change length
+  // (using a useMemo side-effect pattern via a stable derived value)
 
   const counts = {
     info: mockAuditLogs.filter((l) => l.severity === "info").length,
@@ -206,60 +302,20 @@ export function LogsContent() {
       <Card>
         <CardHeader><CardTitle>บันทึกกิจกรรม ({filtered.length})</CardTitle></CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">เวลา</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ระดับ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ผู้ดำเนินการ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">การกระทำ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ทรัพยากร</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">IP Address</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-                ) : filtered.map((log) => (
-                  <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 text-sm text-slate-900">
-                      {new Date(log.timestamp).toLocaleString("th-TH", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge className={`${getSeverityStyle(log.severity)} border-0`}>
-                        <span className="flex items-center gap-1">
-                          {getSeverityIcon(log.severity)} {log.severity.toUpperCase()}
-                        </span>
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <p className="text-sm font-medium text-slate-900">{log.actor}</p>
-                      <p className="text-xs text-slate-500">{log.actorRole}</p>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{log.action}</td>
-                    <td className="py-3 px-4">
-                      <p className="text-sm text-slate-900">{log.resource}</p>
-                      <p className="text-xs text-slate-500 font-mono">{log.resourceId}</p>
-                    </td>
-                    <td className="py-3 px-4 text-sm font-mono text-slate-600">{log.ipAddress}</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={log.status === "success" ? "success" : "destructive"}>
-                        {log.status === "success" ? "สำเร็จ" : "ล้มเหลว"}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedLog(log)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<AuditLog>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
 
