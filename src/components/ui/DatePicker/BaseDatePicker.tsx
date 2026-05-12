@@ -2,7 +2,7 @@
 import { DatePicker, DatePickerProps } from "antd";
 
 export default function BaseDatePicker({
-  placeholder = "Select date",
+  placeholder = "เลือกวันที่",
   onClick,
   onChange,
   disabled = false,
@@ -17,7 +17,7 @@ export default function BaseDatePicker({
       placeholder={placeholder}
       variant={variant}
       size={size}
-      className={`h-10! text-sm! ${className}`.trim()}
+      className={`h-9! text-sm! w-full! ${className}`.trim()}
       onClick={onClick}
       onChange={onChange}
       readOnly={readOnly}

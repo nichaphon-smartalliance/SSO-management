@@ -93,19 +93,18 @@ export function RequestsContent() {
   };
 
   const handleApprove = () => {
-    setShowDetail(false);
     setReviewAction("approve");
     setShowReview(true);
   };
 
   const handleReject = () => {
-    setShowDetail(false);
     setReviewAction("reject");
     setShowReview(true);
   };
 
   const handleReviewConfirm = () => {
     setShowReview(false);
+    setShowDetail(false);
     setSelectedRequest(null);
   };
 
