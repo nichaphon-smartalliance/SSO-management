@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, MoreVertical, Eye, Edit, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,8 @@ import { CLIENTS_CONFIG, CLIENT_STATUS_OPTIONS } from "./Clients.config";
 import { ClientCreateDialog } from "./ClientCreateDialog";
 import { ClientDetailDialog } from "./ClientDetailDialog";
 import type { Client } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 function statusBadge(status: string) {
   if (status === "active") return <Badge variant="success">ใช้งาน</Badge>;
@@ -27,6 +29,8 @@ export function ClientsContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtered = mockClients.filter((c) => {
     const matchSearch =
@@ -36,6 +40,86 @@ export function ClientsContent() {
     const matchStatus = statusFilter === "all" || c.status === statusFilter;
     return matchSearch && matchOrg && matchStatus;
   });
+
+  const columns = useMemo<DataTableColumn<Client>[]>(() => [
+    {
+      key: "clientId", title: "Client ID", dataIndex: "clientId",
+      sortable: true, width: 160,
+      render: (val: string) => <span className="font-mono text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "clientName", title: "ชื่อระบบ", dataIndex: "clientName",
+      sortable: true,
+      render: (val: string, record: Client) => {
+        const isExpiring = new Date(record.expiryDate) <= new Date("2026-04-30");
+        return (
+          <div className="flex items-start gap-2">
+            <p className="font-medium text-slate-900">{val}</p>
+            {isExpiring && record.status !== "expired" && (
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "effectiveDate", title: "วันที่มีผล", dataIndex: "effectiveDate",
+      sortable: true, width: 130,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "expiryDate", title: "วันหมดอายุ", dataIndex: "expiryDate",
+      sortable: true, width: 130,
+      render: (val: string) => {
+        const isExpiring = new Date(val) <= new Date("2026-04-30");
+        return (
+          <span className={`text-sm ${isExpiring ? "text-red-600 font-medium" : "text-slate-600"}`}>
+            {new Date(val).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+          </span>
+        );
+      },
+    },
+    {
+      key: "lastUsed", title: "ใช้งานล่าสุด", dataIndex: "lastUsed",
+      sortable: true, width: 130,
+      render: (val: string | undefined) => (
+        <span className="text-sm text-slate-600">
+          {val ? new Date(val).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 100,
+      render: (val: string) => statusBadge(val),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 60,
+      render: (_: unknown, record: Client) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSelectedClient(record)}>
+              <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
+            </DropdownMenuItem>
+            <DropdownMenuItem><Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}</DropdownMenuItem>
+            <DropdownMenuItem><RefreshCw className="w-4 h-4 mr-2" /> หมุนเวียน Secret</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ], [setSelectedClient]);
 
   return (
     <div className="space-y-6">
@@ -91,76 +175,20 @@ export function ClientsContent() {
           <CardTitle>รายการระบบงาน ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Client ID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อระบบ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">วันที่มีผล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">วันหมดอายุ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ใช้งานล่าสุด</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-                ) : filtered.map((client) => {
-                  const isExpiring = new Date(client.expiryDate) <= new Date("2026-04-30");
-                  return (
-                    <tr key={client.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-mono text-sm text-slate-900">{client.clientId}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-start gap-2">
-                          <p className="font-medium text-slate-900">{client.clientName}</p>
-                          {isExpiring && client.status !== "expired" && (
-                            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">{client.organizationName}</td>
-                      <td className="py-3 px-4 text-sm text-slate-600">
-                        {new Date(client.effectiveDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        <span className={isExpiring ? "text-red-600 font-medium" : "text-slate-600"}>
-                          {new Date(client.expiryDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-slate-600">
-                        {client.lastUsed ? new Date(client.lastUsed).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-"}
-                      </td>
-                      <td className="py-3 px-4">{statusBadge(client.status)}</td>
-                      <td className="py-3 px-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedClient(client)}>
-                              <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <RefreshCw className="w-4 h-4 mr-2" /> หมุนเวียน Secret
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Client>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
 

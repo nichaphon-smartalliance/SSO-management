@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Building2, Users, Boxes, FileCheck,
   TrendingUp, AlertCircle, Clock, CheckCircle,
@@ -21,6 +22,9 @@ import {
   ORG_ACTIVITY_DATA,
 } from "./Dashboard.config";
 import { TEXT_BUTTON, TEXT_LABEL } from "@/constant/text";
+import type { User } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 const pendingRequests = mockRequests.filter((r) => r.status === "pending");
 const recentUsers = mockUsers.slice(0, DASHBOARD_CONFIG.recentUserCount);
@@ -36,6 +40,37 @@ const totalClients = mockClients.length;
 const activeClients = mockClients.filter((c) => c.status === "active").length;
 
 export function DashboardContent() {
+  const recentColumns = useMemo<DataTableColumn<User>[]>(() => [
+    {
+      key: "username", title: "ชื่อผู้ใช้", dataIndex: "username",
+      render: (val: string) => <span className="text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "fullName", title: "ชื่อ-นามสกุล", dataIndex: "fullName",
+      render: (val: string) => <span className="text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "thaidLinked", title: "ThaID", dataIndex: "thaidLinked",
+      align: "center", width: 120,
+      render: (val: boolean) => val
+        ? <Badge variant="success">{TEXT_LABEL.LINKED}</Badge>
+        : <Badge variant="secondary">{TEXT_LABEL.NOT_LINKED}</Badge>,
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      width: 100,
+      render: (val: string) => (
+        <Badge variant={val === "active" ? "success" : val === "locked" ? "destructive" : "secondary"}>
+          {val === "active" ? TEXT_LABEL.STATUS_ACTIVE : val === "locked" ? TEXT_LABEL.STATUS_LOCKED : TEXT_LABEL.STATUS_INACTIVE}
+        </Badge>
+      ),
+    },
+  ], []);
+
   return (
     <div className="space-y-6">
       <DashboardHeader />
@@ -273,40 +308,12 @@ export function DashboardContent() {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อผู้ใช้</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อ-นามสกุล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ThaID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-3 px-4 text-sm text-slate-900">{user.username}</td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{user.fullName}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{user.organizationName}</td>
-                    <td className="py-3 px-4">
-                      {user.thaidLinked ? (
-                        <Badge variant="success">{TEXT_LABEL.LINKED}</Badge>
-                      ) : (
-                        <Badge variant="secondary">{TEXT_LABEL.NOT_LINKED}</Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={user.status === "active" ? "success" : user.status === "locked" ? "destructive" : "secondary"}>
-                        {user.status === "active" ? TEXT_LABEL.STATUS_ACTIVE : user.status === "locked" ? TEXT_LABEL.STATUS_LOCKED : TEXT_LABEL.STATUS_INACTIVE}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<User>
+            rowKey="id"
+            columns={recentColumns}
+            dataSource={recentUsers}
+            emptyText={TEXT_LABEL.NO_DATA}
+          />
         </CardContent>
       </Card>
 

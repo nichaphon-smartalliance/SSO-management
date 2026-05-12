@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, Shield, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { mockPermissions, mockUsers, mockClients, mockOrganizations } from "@/data/mockData";
 import { TEXT_LABEL } from "@/constant/text";
 import { PERMISSIONS_CONFIG, PERMISSION_STATUS_OPTIONS, PERMISSION_STAT_CARDS } from "./Permissions.config";
+import type { Permission } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 function statusBadge(status: string) {
   if (status === "active") return <Badge variant="success">ใช้งาน</Badge>;
@@ -23,6 +26,8 @@ export function PermissionsContent() {
   const [clientFilter, setClientFilter] = useState("all");
   const [orgFilter, setOrgFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtered = mockPermissions.filter((p) => {
     const matchSearch =
@@ -35,6 +40,82 @@ export function PermissionsContent() {
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
     return matchSearch && matchUser && matchClient && matchOrg && matchStatus;
   });
+
+  const columns = useMemo<DataTableColumn<Permission>[]>(() => [
+    {
+      key: "userName", title: "ผู้ใช้งาน", dataIndex: "userName",
+      sortable: true,
+      render: (val: string) => <p className="font-medium text-slate-900">{val}</p>,
+    },
+    {
+      key: "clientName", title: "ระบบงาน", dataIndex: "clientName",
+      sortable: true,
+      render: (val: string, record: Permission) => (
+        <div>
+          <p className="text-sm text-slate-900">{val}</p>
+          <p className="text-xs text-slate-400 font-mono">{record.clientId}</p>
+        </div>
+      ),
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "role", title: "บทบาท", dataIndex: "role",
+      width: 130,
+      render: (val: string) => (
+        <Badge variant="outline" className="gap-1">
+          <Shield className="w-3 h-3" /> {val}
+        </Badge>
+      ),
+    },
+    {
+      key: "scopes", title: "Scopes", dataIndex: "scopes",
+      render: (val: string[]) => (
+        <div className="flex flex-wrap gap-1">
+          {val.slice(0, 2).map((scope, i) => (
+            <Badge key={i} variant="secondary" className="text-xs">{scope}</Badge>
+          ))}
+          {val.length > 2 && (
+            <Badge variant="secondary" className="text-xs">+{val.length - 2}</Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "effectiveDate", title: "วันที่มีผล", dataIndex: "effectiveDate",
+      sortable: true, width: 120,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "expiryDate", title: "วันหมดอายุ", dataIndex: "expiryDate",
+      sortable: true, width: 120,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 110,
+      render: (val: string) => statusBadge(val),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 80,
+      render: (_: unknown, record: Permission) =>
+        record.status === "active" ? (
+          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+            <X className="w-4 h-4 mr-1" /> เพิกถอน
+          </Button>
+        ) : null,
+    },
+  ], []);
 
   return (
     <div className="space-y-6">
@@ -50,7 +131,7 @@ export function PermissionsContent() {
         </Button>
       </div>
 
-      
+
       {/* Filter Card */}
       <Card>
         <CardContent className="pt-6">
@@ -109,74 +190,23 @@ export function PermissionsContent() {
           <CardTitle>สิทธิ์การเข้าถึงระบบ ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ผู้ใช้งาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ระบบงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">บทบาท</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">Scopes</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">วันที่มีผล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">วันหมดอายุ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-400 text-sm">
-                      {TEXT_LABEL.NO_DATA}
-                    </td>
-                  </tr>
-                ) : filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4">
-                      <p className="font-medium text-slate-900">{p.userName}</p>
-                    </td>
-                    <td className="py-3 px-4">
-                      <p className="text-sm text-slate-900">{p.clientName}</p>
-                      <p className="text-xs text-slate-400 font-mono">{p.clientId}</p>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{p.organizationName}</td>
-                    <td className="py-3 px-4">
-                      <Badge variant="outline" className="gap-1">
-                        <Shield className="w-3 h-3" /> {p.role}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1">
-                        {p.scopes.slice(0, 2).map((scope, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">{scope}</Badge>
-                        ))}
-                        {p.scopes.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">+{p.scopes.length - 2}</Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
-                      {new Date(p.effectiveDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
-                      {new Date(p.expiryDate).toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" })}
-                    </td>
-                    <td className="py-3 px-4">{statusBadge(p.status)}</td>
-                    <td className="py-3 px-4 text-right">
-                      {p.status === "active" && (
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                          <X className="w-4 h-4 mr-1" /> เพิกถอน
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Permission>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {PERMISSION_STAT_CARDS.map((s) => {

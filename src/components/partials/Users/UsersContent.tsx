@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, MoreVertical, Eye, Edit, Lock, Unlock, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,8 @@ import { USERS_CONFIG, USER_STATUS_OPTIONS } from "./Users.config";
 import { UserCreateDialog } from "./UserCreateDialog";
 import { UserDetailDialog } from "./UserDetailDialog";
 import type { User } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 const THAID_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
@@ -39,6 +41,8 @@ export function UsersContent() {
   const [thaidFilter, setThaidFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtered = mockUsers.filter((u) => {
     const matchSearch =
@@ -53,6 +57,72 @@ export function UsersContent() {
       (thaidFilter === "not_linked" && !u.thaidLinked);
     return matchSearch && matchOrg && matchStatus && matchThaid;
   });
+
+  const columns = useMemo<DataTableColumn<User>[]>(() => [
+    {
+      key: "username", title: "ชื่อผู้ใช้", dataIndex: "username",
+      sortable: true, width: 140,
+      render: (val: string) => <span className="font-mono text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "fullName", title: "ชื่อ-นามสกุล", dataIndex: "fullName",
+      sortable: true,
+      render: (_: string, record: User) => (
+        <span className="font-medium text-slate-900">{getFullNameWithTitle(record)}</span>
+      ),
+    },
+    {
+      key: "email", title: "อีเมล", dataIndex: "email", sortable: true,
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "thaidLinked", title: "ThaID", dataIndex: "thaidLinked",
+      align: "center", width: 130,
+      render: (val: boolean) => val
+        ? <Badge variant="success" className="gap-1"><CheckCircle2 className="w-3 h-3" /> เชื่อมโยง</Badge>
+        : <Badge variant="secondary" className="gap-1"><XCircle className="w-3 h-3" /> ยังไม่เชื่อมโยง</Badge>,
+    },
+    {
+      key: "lastLogin", title: "เข้าสู่ระบบล่าสุด", dataIndex: "lastLogin",
+      sortable: true, width: 160,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </span>
+      ),
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 100,
+      render: (val: string) => statusBadge(val),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 60,
+      render: (_: unknown, record: User) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSelectedUser(record)}>
+              <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
+            </DropdownMenuItem>
+            <DropdownMenuItem><Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}</DropdownMenuItem>
+            <DropdownMenuItem>
+              {record.status === "locked"
+                ? <><Unlock className="w-4 h-4 mr-2" /> ปลดล็อก</>
+                : <><Lock className="w-4 h-4 mr-2" /> ล็อกบัญชี</>}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ], [setSelectedUser]);
 
   return (
     <div className="space-y-6">
@@ -112,74 +182,20 @@ export function UsersContent() {
           <CardTitle>รายการผู้ใช้งาน ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อผู้ใช้</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อ-นามสกุล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">อีเมล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-                  <th className="text-center py-3 px-4 text-sm font-medium text-slate-600">ThaID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">เข้าสู่ระบบล่าสุด</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-                ) : filtered.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-mono text-sm text-slate-900">{user.username}</td>
-                    <td className="py-3 px-4 font-medium text-slate-900">{getFullNameWithTitle(user)}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{user.email}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{user.organizationName}</td>
-                    <td className="py-3 px-4 text-center">
-                      {user.thaidLinked ? (
-                        <Badge variant="success" className="gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> เชื่อมโยง
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="gap-1">
-                          <XCircle className="w-3 h-3" /> ยังไม่เชื่อมโยง
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
-                      {new Date(user.lastLogin).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </td>
-                    <td className="py-3 px-4">{statusBadge(user.status)}</td>
-                    <td className="py-3 px-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedUser(user)}>
-                            <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            {user.status === "locked" ? (
-                              <><Unlock className="w-4 h-4 mr-2" /> ปลดล็อก</>
-                            ) : (
-                              <><Lock className="w-4 h-4 mr-2" /> ล็อกบัญชี</>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<User>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
 

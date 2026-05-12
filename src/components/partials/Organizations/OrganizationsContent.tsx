@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,8 @@ import { ORGANIZATIONS_CONFIG, ORG_STATUS_OPTIONS } from "./Organizations.config
 import { OrganizationCreateDialog } from "./OrganizationCreateDialog";
 import { OrganizationDetailDialog } from "./OrganizationDetailDialog";
 import type { Organization } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 function statusBadge(status: string) {
   if (status === "active") return <Badge variant="success">{TEXT_LABEL.STATUS_ACTIVE}</Badge>;
@@ -26,6 +28,8 @@ export function OrganizationsContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtered = mockOrganizations.filter((o) => {
     const matchSearch =
@@ -35,6 +39,69 @@ export function OrganizationsContent() {
     const matchStatus = statusFilter === "all" || o.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const columns = useMemo<DataTableColumn<Organization>[]>(() => [
+    {
+      key: "code", title: "รหัสหน่วยงาน", dataIndex: "code",
+      sortable: true, width: 120,
+      render: (val: string) => <span className="font-mono text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "name", title: "ชื่อหน่วยงาน", dataIndex: "name",
+      sortable: true,
+      render: (val: string, record: Organization) => (
+        <div>
+          <p className="font-medium text-slate-900">{val}</p>
+          <p className="text-xs text-slate-500">{record.nameEn}</p>
+        </div>
+      ),
+    },
+    {
+      key: "type", title: "ประเภท", dataIndex: "type",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "contactPerson", title: "ผู้ติดต่อ", dataIndex: "contactPerson",
+      render: (val: string, record: Organization) => (
+        <div>
+          <p className="text-sm text-slate-900">{val}</p>
+          <p className="text-xs text-slate-500">{record.email}</p>
+        </div>
+      ),
+    },
+    {
+      key: "clientCount", title: "ระบบงาน", dataIndex: "clientCount",
+      sortable: true, align: "center", width: 90,
+      render: (val: number) => <span className="text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "userCount", title: "ผู้ใช้งาน", dataIndex: "userCount",
+      sortable: true, align: "center", width: 100,
+      render: (val: number) => <span className="text-sm text-slate-900">{val.toLocaleString()}</span>,
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 100,
+      render: (val: string) => statusBadge(val),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 60,
+      render: (_: unknown, record: Organization) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSelectedOrg(record)}>
+              <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
+            </DropdownMenuItem>
+            <DropdownMenuItem><Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ], [setSelectedOrg]);
 
   return (
     <div className="space-y-6">
@@ -82,61 +149,20 @@ export function OrganizationsContent() {
           <CardTitle>รายการหน่วยงาน ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">รหัสหน่วยงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อหน่วยงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ประเภท</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ผู้ติดต่อ</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ระบบงาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ผู้ใช้งาน</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-                ) : filtered.map((org) => (
-                  <tr key={org.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-mono text-sm text-slate-900">{org.code}</td>
-                    <td className="py-3 px-4">
-                      <p className="font-medium text-slate-900">{org.name}</p>
-                      <p className="text-xs text-slate-500">{org.nameEn}</p>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{org.type}</td>
-                    <td className="py-3 px-4">
-                      <p className="text-sm text-slate-900">{org.contactPerson}</p>
-                      <p className="text-xs text-slate-500">{org.email}</p>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{org.clientCount}</td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{org.userCount.toLocaleString()}</td>
-                    <td className="py-3 px-4">{statusBadge(org.status)}</td>
-                    <td className="py-3 px-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedOrg(org)}>
-                            <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Organization>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
 

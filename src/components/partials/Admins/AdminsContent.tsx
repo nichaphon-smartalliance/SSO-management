@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus, Search, MoreVertical, Edit, Trash2, Shield, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,8 @@ import { TEXT_LABEL, TEXT_BUTTON } from "@/constant/text";
 import { ADMINS_CONFIG } from "./Admins.config";
 import { AdminCreateDialog } from "./AdminCreateDialog";
 import type { Admin } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 const ROLE_OPTIONS = [
   { value: "all", label: "ทั้งหมด" },
@@ -35,6 +37,8 @@ export function AdminsContent() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtered = mockAdmins.filter((a) => {
     const matchSearch =
@@ -44,6 +48,73 @@ export function AdminsContent() {
     const matchRole = roleFilter === "all" || a.role === roleFilter;
     return matchSearch && matchRole;
   });
+
+  const columns = useMemo<DataTableColumn<Admin>[]>(() => [
+    {
+      key: "username", title: "ชื่อผู้ใช้", dataIndex: "username",
+      sortable: true, width: 140,
+      render: (val: string) => <span className="font-mono text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "fullName", title: "ชื่อ-นามสกุล", dataIndex: "fullName",
+      sortable: true,
+      render: (val: string, record: Admin) => (
+        <p className="font-medium text-slate-900">{getTitleName(record.titleId)}{val}</p>
+      ),
+    },
+    {
+      key: "email", title: "อีเมล", dataIndex: "email",
+      sortable: true,
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "role", title: "บทบาท", dataIndex: "role",
+      sortable: true, width: 140,
+      render: (val: string) => roleBadge(val),
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string | undefined) => <span className="text-sm text-slate-600">{val || "-"}</span>,
+    },
+    {
+      key: "mfaEnabled", title: "MFA", dataIndex: "mfaEnabled",
+      align: "center", width: 70,
+      render: (val: boolean) => <Switch checked={val} disabled />,
+    },
+    {
+      key: "lastLogin", title: "เข้าสู่ระบบล่าสุด", dataIndex: "lastLogin",
+      sortable: true, width: 160,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleString("th-TH", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </span>
+      ),
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 100,
+      render: (val: string) => (
+        <Badge variant={val === "active" ? "success" : "destructive"}>
+          {val === "active" ? TEXT_LABEL.STATUS_ACTIVE : TEXT_LABEL.STATUS_INACTIVE}
+        </Badge>
+      ),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 60,
+      render: () => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem><Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}</DropdownMenuItem>
+            <DropdownMenuItem><Shield className="w-4 h-4 mr-2" /> จัดการสิทธิ์</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600"><Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ], []);
 
   return (
     <div className="space-y-6">
@@ -88,67 +159,20 @@ export function AdminsContent() {
           <CardTitle>รายการผู้ดูแลระบบ ({filtered.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อผู้ใช้</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ชื่อ-นามสกุล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">อีเมล</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">บทบาท</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-                  <th className="text-center py-3 px-4 text-sm font-medium text-slate-600">MFA</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">เข้าสู่ระบบล่าสุด</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-                  <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={9} className="py-12 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-                ) : filtered.map((admin) => (
-                  <tr key={admin.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-mono text-sm text-slate-900">{admin.username}</td>
-                    <td className="py-3 px-4 font-medium text-slate-900">
-                      {getTitleName(admin.titleId)}{admin.fullName}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{admin.email}</td>
-                    <td className="py-3 px-4">{roleBadge(admin.role)}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{admin.organizationName || "-"}</td>
-                    <td className="py-3 px-4 text-center">
-                      <Switch checked={admin.mfaEnabled} disabled />
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
-                      {new Date(admin.lastLogin).toLocaleString("th-TH", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={admin.status === "active" ? "success" : "destructive"}>
-                        {admin.status === "active" ? TEXT_LABEL.STATUS_ACTIVE : TEXT_LABEL.STATUS_INACTIVE}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" /> {TEXT_BUTTON.EDIT}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Shield className="w-4 h-4 mr-2" /> จัดการสิทธิ์
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" /> {TEXT_BUTTON.DELETE}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Admin>
+            rowKey="id"
+            columns={columns}
+            dataSource={filtered}
+            emptyText={TEXT_LABEL.NO_DATA}
+            pagination={{
+              current: currentPage,
+              pageSize: PAGE_SIZE,
+              total: filtered.length,
+              showSizeChanger: false,
+              showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`,
+              onChange: (page) => setCurrentPage(page),
+            }}
+          />
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -13,57 +13,13 @@ import { REQUESTS_CONFIG } from "./Requests.config";
 import { RequestDetailDialog } from "./RequestDetailDialog";
 import { RequestReviewDialog } from "./RequestReviewDialog";
 import type { AccessRequest } from "@/types/app";
+import { DataTable } from "@/components/common/DataTable";
+import type { DataTableColumn } from "@/components/common/DataTable";
 
 function statusBadge(status: string) {
   if (status === "approved") return <Badge variant="success" className="gap-1"><CheckCircle className="w-3 h-3" /> อนุมัติ</Badge>;
   if (status === "rejected") return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" /> ปฏิเสธ</Badge>;
   return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" /> รอดำเนินการ</Badge>;
-}
-
-function RequestTable({ requests, onView }: { requests: AccessRequest[]; onView: (r: AccessRequest) => void }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-slate-200">
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">เลขที่คำขอ</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ผู้ขอใช้งาน</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">ระบบงาน</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">หน่วยงาน</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">บทบาท</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">วันที่ขอ</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-slate-600">สถานะ</th>
-            <th className="text-right py-3 px-4 text-sm font-medium text-slate-600">การดำเนินการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.length === 0 ? (
-            <tr><td colSpan={8} className="py-8 text-center text-slate-400 text-sm">{TEXT_LABEL.NO_DATA}</td></tr>
-          ) : requests.map((req) => (
-            <tr key={req.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <td className="py-3 px-4 font-mono text-sm text-slate-900">{req.requestNumber}</td>
-              <td className="py-3 px-4">
-                <p className="font-medium text-slate-900">{req.userName}</p>
-                <p className="text-xs text-slate-500">{req.userEmail}</p>
-              </td>
-              <td className="py-3 px-4 text-sm text-slate-900">{req.clientName}</td>
-              <td className="py-3 px-4 text-sm text-slate-600">{req.organizationName}</td>
-              <td className="py-3 px-4"><Badge variant="outline">{req.requestedRole}</Badge></td>
-              <td className="py-3 px-4 text-sm text-slate-600">
-                {new Date(req.requestedAt).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </td>
-              <td className="py-3 px-4">{statusBadge(req.status)}</td>
-              <td className="py-3 px-4 text-right">
-                <Button variant="ghost" size="sm" onClick={() => onView(req)}>
-                  <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 }
 
 export function RequestsContent() {
@@ -72,6 +28,8 @@ export function RequestsContent() {
   const [showDetail, setShowDetail] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [reviewAction, setReviewAction] = useState<"approve" | "reject">("approve");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filterByStatus = (status: string) =>
     mockAccessRequests.filter((req) => {
@@ -108,6 +66,60 @@ export function RequestsContent() {
     setSelectedRequest(null);
   };
 
+  const columns = useMemo<DataTableColumn<AccessRequest>[]>(() => [
+    {
+      key: "requestNumber", title: "เลขที่คำขอ", dataIndex: "requestNumber",
+      sortable: true, width: 140,
+      render: (val: string) => <span className="font-mono text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "userName", title: "ผู้ขอใช้งาน", dataIndex: "userName",
+      sortable: true,
+      render: (val: string, record: AccessRequest) => (
+        <div>
+          <p className="font-medium text-slate-900">{val}</p>
+          <p className="text-xs text-slate-500">{record.userEmail}</p>
+        </div>
+      ),
+    },
+    {
+      key: "clientName", title: "ระบบงาน", dataIndex: "clientName",
+      sortable: true,
+      render: (val: string) => <span className="text-sm text-slate-900">{val}</span>,
+    },
+    {
+      key: "organizationName", title: "หน่วยงาน", dataIndex: "organizationName",
+      render: (val: string) => <span className="text-sm text-slate-600">{val}</span>,
+    },
+    {
+      key: "requestedRole", title: "บทบาท", dataIndex: "requestedRole",
+      width: 110,
+      render: (val: string) => <Badge variant="outline">{val}</Badge>,
+    },
+    {
+      key: "requestedAt", title: "วันที่ขอ", dataIndex: "requestedAt",
+      sortable: true, width: 150,
+      render: (val: string) => (
+        <span className="text-sm text-slate-600">
+          {new Date(val).toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </span>
+      ),
+    },
+    {
+      key: "status", title: "สถานะ", dataIndex: "status",
+      sortable: true, width: 130,
+      render: (val: string) => statusBadge(val),
+    },
+    {
+      key: "actions", title: "", align: "center", width: 80,
+      render: (_: unknown, record: AccessRequest) => (
+        <Button variant="ghost" size="sm" onClick={() => handleView(record)}>
+          <Eye className="w-4 h-4 mr-2" /> ดูรายละเอียด
+        </Button>
+      ),
+    },
+  ], [handleView]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -139,10 +151,42 @@ export function RequestsContent() {
               <TabsTrigger value="rejected">ปฏิเสธแล้ว ({rejected.length})</TabsTrigger>
               <TabsTrigger value="all">ทั้งหมด ({all.length})</TabsTrigger>
             </TabsList>
-            <TabsContent value="pending" className="mt-6"><RequestTable requests={pending} onView={handleView} /></TabsContent>
-            <TabsContent value="approved" className="mt-6"><RequestTable requests={approved} onView={handleView} /></TabsContent>
-            <TabsContent value="rejected" className="mt-6"><RequestTable requests={rejected} onView={handleView} /></TabsContent>
-            <TabsContent value="all" className="mt-6"><RequestTable requests={all} onView={handleView} /></TabsContent>
+            <TabsContent value="pending" className="mt-6">
+              <DataTable<AccessRequest>
+                rowKey="id"
+                columns={columns}
+                dataSource={pending}
+                emptyText={TEXT_LABEL.NO_DATA}
+                pagination={{ current: currentPage, pageSize: PAGE_SIZE, total: pending.length, showSizeChanger: false, showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`, onChange: (page) => setCurrentPage(page) }}
+              />
+            </TabsContent>
+            <TabsContent value="approved" className="mt-6">
+              <DataTable<AccessRequest>
+                rowKey="id"
+                columns={columns}
+                dataSource={approved}
+                emptyText={TEXT_LABEL.NO_DATA}
+                pagination={{ current: currentPage, pageSize: PAGE_SIZE, total: approved.length, showSizeChanger: false, showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`, onChange: (page) => setCurrentPage(page) }}
+              />
+            </TabsContent>
+            <TabsContent value="rejected" className="mt-6">
+              <DataTable<AccessRequest>
+                rowKey="id"
+                columns={columns}
+                dataSource={rejected}
+                emptyText={TEXT_LABEL.NO_DATA}
+                pagination={{ current: currentPage, pageSize: PAGE_SIZE, total: rejected.length, showSizeChanger: false, showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`, onChange: (page) => setCurrentPage(page) }}
+              />
+            </TabsContent>
+            <TabsContent value="all" className="mt-6">
+              <DataTable<AccessRequest>
+                rowKey="id"
+                columns={columns}
+                dataSource={all}
+                emptyText={TEXT_LABEL.NO_DATA}
+                pagination={{ current: currentPage, pageSize: PAGE_SIZE, total: all.length, showSizeChanger: false, showTotal: (total, range) => `${range[0]}-${range[1]} จาก ${total} รายการ`, onChange: (page) => setCurrentPage(page) }}
+              />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
